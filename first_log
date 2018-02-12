@@ -1,0 +1,122 @@
+10000000 1
+Sorting took 2.07463 secs
+Sorting successful
+
+10000000 2
+Sorting took 1.09295 secs
+Sorting successful
+
+10000000 3
+Sorting took 0.807367 secs
+Sorting successful
+
+10000000 4
+Sorting took 0.65966 secs
+Sorting successful
+
+10000000 5
+Sorting took 0.735323 secs
+Sorting successful
+
+10000000 6
+Sorting took 0.681279 secs
+Sorting successful
+
+10000000 7
+Sorting took 0.645978 secs
+Sorting successful
+
+10000000 8
+Sorting took 0.626828 secs
+Sorting successful
+
+20000000 1
+Sorting took 4.21001 secs
+Sorting successful
+
+20000000 2
+Sorting took 2.23 secs
+Sorting successful
+
+20000000 3
+Sorting took 2.18801 secs
+Sorting successful
+
+20000000 4
+Sorting took 1.77517 secs
+Sorting successful
+
+20000000 5
+Sorting took 1.4865 secs
+Sorting successful
+
+20000000 6
+Sorting took 1.39022 secs
+Sorting successful
+
+20000000 7
+Sorting took 1.31612 secs
+Sorting successful
+
+20000000 8
+Sorting took 1.29042 secs
+Sorting successful
+
+40000000 1
+Sorting took 8.76136 secs
+Sorting successful
+
+40000000 2
+Sorting took 4.60839 secs
+Sorting successful
+
+40000000 3
+Sorting took 4.47635 secs
+Sorting successful
+
+40000000 4
+Sorting took 3.61397 secs
+Sorting successful
+
+40000000 5
+Sorting took 3.13874 secs
+Sorting successful
+
+40000000 6
+Sorting took 2.87592 secs
+Sorting successful
+
+40000000 7
+Sorting took 2.71589 secs
+Sorting successful
+
+40000000 8
+Sorting took 2.64902 secs
+Sorting successful
+
+80000000 1
+Sorting took 18.0053 secs
+Sorting successful
+
+80000000 2
+Sorting took 9.56146 secs
+Sorting successful
+
+80000000 3
+Sorting took 6.94307 secs
+Sorting successful
+
+80000000 4
+Sorting took 9.92398 secs
+Sorting successful
+
+80000000 5
+Sorting took 9.08051 secs
+Sorting successful
+
+80000000 6
+Sorting took 8.42958 secs
+Sorting successful
+
+80000000 7
+Killed
