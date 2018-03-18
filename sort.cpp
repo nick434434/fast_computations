@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
 
 
 using std::cout;
@@ -10,21 +11,12 @@ using std::endl;
 using std::cin;
 
 
-double make_sorting(int n, int nthreads, int* arr) {
+double make_sorting(long long n, int nthreads, long long* arr) {
 
     srand(time(NULL));
 
-    cout << n << " " << nthreads << endl;
-
-    for (int i = 0; i < n; i++) {
-        int a = rand();
-        //cout << a << ":";
-        arr[i] = (a / n);
-        //cout << arr[i] << " ";
-    }
-
-    int** parts = new int*[nthreads];
-    int* what_left = new int[nthreads];
+    long long** parts = new long long*[nthreads];
+    long long* what_left = new long long[nthreads];
 
     struct timespec start, finish;
     double elapsed;
@@ -35,24 +27,24 @@ double make_sorting(int n, int nthreads, int* arr) {
     {
         int T = omp_get_num_threads();
         int tid = omp_get_thread_num();
-        int start = n / T;
-        int chunk = start;
+        long long start = n / T;
+        long long chunk = start;
         if (tid == T-1)
             chunk += n % T;
 
-        parts[tid] = new int[chunk];
+        parts[tid] = new long long[chunk];
         std::copy(arr + tid*start, arr + tid*start + chunk, parts[tid]);
 
         what_left[tid] = chunk;
-        std::sort(parts[tid], parts[tid] + chunk, [](int x, int y) { return x > y; });
+        std::sort(parts[tid], parts[tid] + chunk, [](long long x, long long y) { return x > y; });
 
     }
 
-    for (int i = 0; i < n; i++) {
-        int min = n*n + 1;
-        int what_j = -1;
+    for (long long i = 0; i < n; i++) {
+        long long min = n*n + 1;
+        long long what_j = -1;
 
-        for (int j = 0; j < nthreads; j++) {
+        for (long long j = 0; j < nthreads; j++) {
             if (what_left[j]) {
                 if (parts[j][what_left[j]-1] < min) {
                     min = parts[j][what_left[j]-1];
@@ -75,27 +67,44 @@ double make_sorting(int n, int nthreads, int* arr) {
 
 int main(int argc, char** argv) {
 
-    for (int n = 10000000; n < 200000000; n *= 2) {
-        for (int nthreads = 1; nthreads <= 8; nthreads++) {
-            int* arr = new int[n];
-            double elapsed = make_sorting(n, nthreads, arr);
-            cout << "Sorting took " << elapsed << " secs" << endl;
+    //for (int n = (int)10e7; n < (int)13e7; n += (int)2e7) {
+        //for (int nthreads = 1; nthreads <= 8; nthreads++) {
+            double* res = new double[5];
+            long long N = 10e7;
+            long long* arr = new long long[N];
 
-            bool f = false;
-            for (int i = 0; i < n-1; i++) {
-                //cout << arr[i] << " ";
-                if (arr[i] > arr[i+1]) {
-                    cout << "Sorting failed" << endl;
-                    f = true;
-                    break;
+            for (int i = 0; i < 5; i++) {
+                std::ifstream fin("arr", std::ifstream::in);
+                for (long long i = 0; i < N; i++) {
+                    fin >> arr[i];
                 }
+                cout << endl;
+                fin.close();
+
+                double elapsed = make_sorting(N, 5, arr);
+                cout << "Sorting took " << elapsed << " secs" << endl;
+                res[i] = elapsed;
+
+                bool f = false;
+                for (long long i = 0; i < N-1; i++) {
+                    //cout << arr[i] << " ";
+                    if (arr[i] > arr[i+1]) {
+                        cout << "Sorting failed" << endl;
+                        f = true;
+                        break;
+                    }
+                }
+                if (!f)
+                    cout << "Sorting successful" << endl;
+                cout << endl;
             }
             delete[] arr;
-            if (!f)
-                cout << "Sorting successful" << endl;
+            for (int i = 0; i < 5; i++)
+                cout << res[i] << ",";
             cout << endl;
-        }
-    }
+            delete[] res;
+        //}
+    //}
 
 
     return 0;
