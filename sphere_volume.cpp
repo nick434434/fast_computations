@@ -51,22 +51,22 @@ double volume(int dim, int n, int nthreads) {
         p *= 2;
 
     return p * inside / n;
-
-    /*
-    #pragma omp parallel for schedule(guided)
-    for (int i = 0; i < n; i++) {
-        srand(i);
-        double s = 0;
-        for (int j = 0; j < dim; j++) {
-            double x = 2.0 * rand() / RAND_MAX - 1;
-            s += x*x;
-        }
-        if (s <= 1)
-            #pragma omp atomic
-            inside += 1;
-    }
-    */
 }
+
+/*
+#pragma omp parallel for schedule(guided)
+for (int i = 0; i < n; i++) {
+    srand(i);
+    double s = 0;
+    for (int j = 0; j < dim; j++) {
+        double x = 2.0 * rand() / RAND_MAX - 1;
+        s += x*x;
+    }
+    if (s <= 1)
+        #pragma omp atomic
+        inside += 1;
+}
+*/
 
 int main() {
 
