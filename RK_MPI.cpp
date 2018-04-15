@@ -14,25 +14,11 @@ using std::cout;
 using std::endl;
 
 
-void rhs(double* xy, double* rxy, double* omega, int n, int k, int nthreads) {
+void rhs(double* xy, double* rxy, double* omega, int n, int begin, int end) {
     double* x = xy;
     double* y = xy + n;
     double* rx = rxy;
     double* ry = rxy + n;
-
-    int cluster_size = n / nthreads;
-    int begin = 0, end = 0;
-    if (k < n % nthreads) {
-        cluster_size += 1;
-        begin += k;
-        end += k;
-    } else {
-        begin  += n % nthreads;
-        end += n % nthreads;
-    }
-
-    begin += k * cluster_size;
-    end += (k + 1) * cluster_size;
 
     for (int i = 0; i < n; i++) {
         for (int j = begin; j < end; j++) {
@@ -45,7 +31,7 @@ void rhs(double* xy, double* rxy, double* omega, int n, int k, int nthreads) {
             rx[i] += dy * t;
             ry[i] += dx * t;
         }
-        rx[i] /= 2*M_PI;
+        rx[i] /= -2*M_PI;
         ry[i] /= 2*M_PI;
     }
 
@@ -69,25 +55,51 @@ void RK(int niter, int n, int nthreads, int k, double h, double* xy0, double**& 
     res[0] = new double[nn];
     memcpy(res[0], xy0, nn*sizeof(double));
 
+    int cluster_size = n / nthreads;
+    int begin = 0, end = 0;
+    if (k < n % nthreads) {
+        cluster_size += 1;
+        begin += k;
+        end += k;
+    } else {
+        begin  += n % nthreads;
+        end += n % nthreads;
+    }
+
+    begin += k * cluster_size;
+    end += (k + 1) * cluster_size;
+
+    cout << begin << " " << end << " " << k << endl;
+
     for (int i = 1; i < niter; ++i) {
         memset(k1, 0, nn*4*sizeof(double));
         res[i] = new double[nn];
         memset(res[i], 0, nn*sizeof(double));
-
         double* last = res[i-1];
-        rhs(res[i-1], k1, w, n, k, nthreads);
+
+        if (k == 0 && i == 1) {
+            cout << "Rank 0, Iter 1" << endl;
+            for (int j = 0; j < nn; ++j)
+                cout << res[i - 1][j] << " ";
+            cout << endl;
+            for (int j = 0; j < nn; ++j)
+                cout << last[j] << " ";
+            cout << endl;
+        }
+
+        rhs(res[i-1], k1, w, n, begin, end);
 
         for (int j = 0; j < nn; ++j)
             tmp[j] = last[j] + k1[j] * h_2;
-        rhs(tmp, k2, w, n, k, nthreads);
+        rhs(tmp, k2, w, n, begin, end);
 
         for (int j = 0; j < nn; ++j)
             tmp[j] = last[j] + k2[j] * h_2;
-        rhs(tmp, k3, w, n, k, nthreads);
+        rhs(tmp, k3, w, n, begin, end);
 
         for (int j = 0; j < nn; ++j)
-            tmp[j] = last[j] + k3[j] * h_2;
-        rhs(tmp, k4, w, n, k, nthreads);
+            tmp[j] = last[j] + k3[j] * h;
+        rhs(tmp, k4, w, n, begin, end);
 
         for (int j = 0; j < nn; ++j)
             res[i][j] = last[j] + h_6 * (k1[j] + k4[j] + 2 * (k2[j] + k3[j]));
@@ -99,15 +111,21 @@ void RK(int niter, int n, int nthreads, int k, double h, double* xy0, double**& 
 }
 
 
-void gen(double* xy, double* w, int n) {
+void gen(double* xy, double* w, int n, int mode) {
 
     unsigned int seed = (unsigned int)time(NULL);
     for (int i = 0; i < n; i++) {
         double arg = 1.0 * rand_r(&seed) / RAND_MAX;
         arg *= 2.0 * M_PI;
-        xy[i] = cos(arg);
-        xy[i + n] = sin(arg);
-        w[i] = 1;
+        if (!mode) {
+            xy[i] = cos(arg);
+            xy[i + n] = sin(arg);
+        } else {
+            double mult = 2.0 * rand_r(&seed) / RAND_MAX;
+            xy[i] = arg;
+            xy[i+n] = arg * mult;
+        }
+        w[i] = 10;
     }
 
 }
@@ -146,7 +164,10 @@ void run(int n, int niter) {
     double* xy = new double[2*n];
     double* w = new double[n];
     if (rank == 0) {
-        gen(xy, w, n);
+        gen(xy, w, n, 0);
+        for (int i = 0; i < n; ++i)
+            cout << w[i] << " ";
+        cout << endl;
     }
 
     MPI_Bcast(xy, 2*n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -159,7 +180,7 @@ void run(int n, int niter) {
     }
 
     double** res;
-    double h = 0.01;
+    double h = 0.001;
 
     struct timespec start, finish;
     double elapsed = 0;
@@ -183,11 +204,6 @@ int main(int argc, char** argv) {
 
     MPI_Init(NULL, NULL);
 
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-    if (rank == 0)
-        cout << argc << endl;
     run(atoi(argv[1]), atoi(argv[2]));
 
     MPI_Finalize();
